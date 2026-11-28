@@ -1,0 +1,288 @@
+/* ==========================================================================
+   GoCycle – animated Home page
+   Dusk ride hero: bike on a moving road with spinning wheels, parallax hills,
+   plus lively feature cards, steps and call-to-action band.
+   Loaded only on body.is-home (scene base styles come from auth-motion.css).
+   ========================================================================== */
+
+/* ---------- Hero ---------- */
+body.is-home .gc-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: min(660px, calc(100vh - 70px));
+  padding-bottom: 0;
+  align-items: center;
+  background:
+    radial-gradient(70% 60% at 72% 100%, rgba(255, 190, 110, 0.2), transparent 70%),
+    linear-gradient(180deg, #061a2b 0%, #0b3a3a 45%, #14644a 85%, #1a7a52 100%);
+}
+body.is-home .gc-hero > .gc-ride-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+body.is-home .gc-hero-text,
+body.is-home .gc-hero-art {
+  position: relative;
+  z-index: 2;
+}
+body.is-home .gc-hero-art {
+  align-self: end;
+}
+body.is-home .gc-hero-art svg {
+  overflow: visible;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.4));
+}
+/* hills/trees sit behind the road, which is drawn inside the bike SVG */
+body.is-home .rs-layer.far { bottom: 30px; height: 46%; }
+body.is-home .rs-layer.mid { bottom: 24px; height: 28%; }
+body.is-home .rs-moon { right: 6%; top: 40px; }
+body.is-home .rs-stars { inset: 0 0 40% 0; }
+
+/* bike riding: gentle suspension bob + lane/speed-line motion */
+.gc-hero-art .bike-rig {
+  animation: hm-bob 0.6s ease-in-out infinite alternate;
+}
+.gc-hero-art .road-lane {
+  animation: hm-lane 0.7s linear infinite;
+}
+.gc-hero-art .speed-lines path {
+  animation: hm-speed 0.9s ease-in-out infinite alternate;
+}
+.gc-hero-art .speed-lines path:nth-child(2) { animation-delay: -0.3s; }
+.gc-hero-art .speed-lines path:nth-child(3) { animation-delay: -0.6s; }
+@keyframes hm-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
+}
+@keyframes hm-lane {
+  to { stroke-dashoffset: -86; }
+}
+@keyframes hm-speed {
+  from { opacity: 0.1; transform: translateX(-12px); }
+  to { opacity: 0.8; transform: translateX(10px); }
+}
+.gc-hero-art .wheel-rotor { transform-origin: 0 0; }
+
+/* floating "booking confirmed" chip */
+.gc-float-chip {
+  position: absolute;
+  right: 2%;
+  top: -14%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px 12px 12px;
+  border-radius: 18px;
+  color: var(--ink);
+  background: rgba(242, 250, 244, 0.95);
+  box-shadow: 0 18px 40px rgba(0, 20, 10, 0.4);
+  animation: hm-float 4.5s ease-in-out infinite;
+}
+.gc-float-chip .tick {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--btn);
+  color: #fff;
+  animation: hm-pulse 2.4s ease-out infinite;
+}
+.gc-float-chip b { display: block; font-size: 0.9rem; }
+.gc-float-chip small { color: var(--muted); font-size: 0.74rem; }
+@keyframes hm-float {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+@keyframes hm-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(30, 122, 71, 0.55); }
+  100% { box-shadow: 0 0 0 14px rgba(30, 122, 71, 0); }
+}
+
+/* ---------- Hero text ---------- */
+.gc-hero-slogan {
+  animation: hm-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.gc-hero-title {
+  animation: hm-in 0.9s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.gc-hero-title b {
+  background: linear-gradient(100deg, #86e0a0 35%, #c8ffd9 50%, #86e0a0 65%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hm-shine 5s ease-in-out 1s infinite;
+}
+.gc-hero-copy {
+  animation: hm-in 0.9s 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.gc-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+.gc-hero-chips li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(6px);
+  font-size: 0.82rem;
+  animation: hm-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.gc-hero-chips li:nth-child(1) { animation-delay: 0.4s; }
+.gc-hero-chips li:nth-child(2) { animation-delay: 0.5s; }
+.gc-hero-chips li:nth-child(3) { animation-delay: 0.6s; }
+.gc-hero-chips .gc-ico { color: var(--tan); }
+.gc-hero-actions {
+  animation: hm-in 0.9s 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+@keyframes hm-in {
+  from { opacity: 0; transform: translateY(24px); }
+}
+@keyframes hm-shine {
+  0%, 20% { background-position: 100% 0; }
+  60%, 100% { background-position: -100% 0; }
+}
+
+/* CTA buttons: sheen */
+.gc-cta {
+  position: relative;
+  overflow: hidden;
+}
+.gc-cta.is-solid::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: skewX(-20deg);
+  animation: hm-sheen 3.6s ease-in-out infinite;
+}
+.gc-cta .gc-ico { animation: hm-nudge 1.5s ease-in-out infinite; }
+@keyframes hm-sheen {
+  0%, 55% { left: -60%; }
+  100% { left: 130%; }
+}
+@keyframes hm-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+/* ---------- Below the hero ---------- */
+.gc-features li .gc-ico {
+  animation: hm-bobicon 2.8s ease-in-out infinite;
+}
+.gc-features li:nth-child(2) .gc-ico { animation-delay: -0.9s; }
+.gc-features li:nth-child(3) .gc-ico { animation-delay: -1.8s; }
+@keyframes hm-bobicon {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-4px) rotate(-6deg); }
+}
+
+/* scroll reveal (class added by script, so no-JS stays visible) */
+.rv {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s var(--rv-d, 0ms) ease, transform 0.7s var(--rv-d, 0ms) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rv.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* feature cards */
+.gc-feature {
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.7s var(--rv-d, 0ms) ease, transform 0.3s, border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.gc-feature::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(134, 224, 160, 0.18) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s;
+}
+.gc-feature.in:hover {
+  transform: translateY(-6px);
+  border-color: rgba(134, 224, 160, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+.gc-feature:hover::before { transform: translateX(120%); }
+.gc-feature .gc-fico {
+  transition: transform 0.4s;
+}
+.gc-feature:hover .gc-fico {
+  transform: rotate(-10deg) scale(1.12);
+}
+
+/* steps: a rider's route line connecting the numbers */
+.gc-steps li {
+  transition: opacity 0.7s var(--rv-d, 0ms) ease, transform 0.3s, box-shadow 0.3s;
+}
+.gc-steps li.in:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+.gc-steps li::before {
+  animation: hm-pulse 2.6s ease-out infinite;
+}
+.gc-steps li:nth-child(2)::before { animation-delay: -0.6s; }
+.gc-steps li:nth-child(3)::before { animation-delay: -1.2s; }
+.gc-steps li:nth-child(4)::before { animation-delay: -1.8s; }
+.gc-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 40px;
+  left: 70px;
+  right: -18px;
+  height: 0;
+  border-top: 3px dashed rgba(30, 122, 71, 0.5);
+}
+
+/* CTA band: moving gradient */
+.gc-cta-band {
+  background: linear-gradient(120deg, #1e7a47, #2f9a63, #1e7a47, #2f9a63) 0 0 / 300% 100%;
+  animation: hm-band 10s linear infinite;
+}
+@keyframes hm-band {
+  to { background-position: -300% 0; }
+}
+
+@media (max-width: 900px) {
+  body.is-home .gc-hero { min-height: 0; padding-bottom: 0; }
+  .gc-float-chip { right: 2%; top: 2%; transform: scale(0.85); }
+  .gc-steps li::after { display: none; }
+}
+@media (max-width: 560px) {
+  body.is-home .rs-moon { display: none; }
+  .gc-float-chip { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.is-home .gc-hero *,
+  .gc-hero-art .bike-rig,
+  .gc-cta-band,
+  .gc-feature,
+  .gc-steps li,
+  .gc-steps li::before,
+  .gc-features .gc-ico {
+    animation: none !important;
+  }
+  .rv { opacity: 1; transform: none; transition: none; }
+  .gc-hero-title b { -webkit-text-fill-color: var(--tan); background: none; }
+}

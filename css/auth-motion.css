@@ -1,0 +1,645 @@
+/* ==========================================================================
+   GoCycle – animated Login / Register
+   A dusk ride: rider pedalling on the road, scrolling hills and trees,
+   a live route with pulsing stops, plus lively card, form and button motion.
+   Loaded only on pages with body.is-auth.
+   ========================================================================== */
+
+@property --rs-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* The old scene was collapsing to 0 height (position:relative override),
+   which is why the page looked like a plain colour. Fix + restyle it. */
+body.gc-pub.is-auth > .gc-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+body.gc-pub.is-auth .gc-scene .gc-floating-leaf,
+body.gc-pub.is-auth .gc-scene .gc-auth-bike,
+body.gc-pub.is-auth .gc-scene .gc-leaf {
+  display: none;
+}
+body.gc-pub.is-auth > .gc-scene::before {
+  display: none;
+}
+body.gc-pub.is-auth > .gc-scene {
+  background:
+    radial-gradient(60% 50% at 50% 100%, rgba(255, 190, 110, 0.22), transparent 70%),
+    linear-gradient(180deg, #061a2b 0%, #0b3a3a 42%, #14644a 78%, #1a7a52 100%);
+}
+body.gc-pub.is-auth > .gc-scene::after {
+  background: linear-gradient(90deg, rgba(4, 18, 20, 0.5), rgba(4, 18, 20, 0.05) 65%);
+}
+
+/* ---------- Scene container ---------- */
+body.gc-pub.is-auth > .gc-ride-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gc-ride-scene > * {
+  position: absolute;
+}
+
+/* stars */
+.rs-stars {
+  inset: 0 0 45% 0;
+}
+.rs-stars i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #eafff1;
+  animation: rs-twinkle 3.4s ease-in-out infinite;
+}
+.rs-stars i:nth-child(3n) {
+  width: 2px;
+  height: 2px;
+  animation-duration: 2.6s;
+}
+@keyframes rs-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 0.95; transform: scale(1.3); }
+}
+
+/* moon */
+.rs-moon {
+  right: 7%;
+  top: 92px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fffbe6, #f4e7a8 60%, #e2d083);
+  box-shadow: 0 0 40px 12px rgba(255, 244, 190, 0.3), 0 0 120px 40px rgba(255, 244, 190, 0.12);
+  animation: rs-moon 7s ease-in-out infinite alternate;
+}
+@keyframes rs-moon {
+  from { transform: translateY(0); box-shadow: 0 0 36px 8px rgba(255, 244, 190, 0.26), 0 0 100px 30px rgba(255, 244, 190, 0.1); }
+  to { transform: translateY(10px); box-shadow: 0 0 52px 16px rgba(255, 244, 190, 0.38), 0 0 140px 50px rgba(255, 244, 190, 0.16); }
+}
+
+/* clouds */
+.rs-cloud {
+  height: 26px;
+  border-radius: 99px;
+  background: rgba(220, 255, 235, 0.1);
+  filter: blur(1px);
+  left: -200px;
+  animation: rs-cloud linear infinite;
+}
+.rs-cloud::before {
+  content: "";
+  position: absolute;
+  left: 22%;
+  top: -14px;
+  width: 42%;
+  height: 34px;
+  border-radius: 50%;
+  background: inherit;
+}
+.rs-cloud.c1 { top: 16%; width: 170px; animation-duration: 70s; }
+.rs-cloud.c2 { top: 30%; width: 120px; animation-duration: 95s; animation-delay: -40s; opacity: 0.8; }
+.rs-cloud.c3 { top: 9%; width: 210px; animation-duration: 120s; animation-delay: -75s; opacity: 0.6; }
+@keyframes rs-cloud {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100vw + 420px)); }
+}
+
+/* route line with stops + live tracker (the ride-booking idea) */
+.rs-route {
+  left: 0;
+  top: 11vh;
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
+}
+.rs-route-line {
+  stroke: rgba(170, 255, 200, 0.42);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 4 16;
+  animation: rs-dash 2.4s linear infinite;
+}
+@keyframes rs-dash {
+  to { stroke-dashoffset: -40; }
+}
+.rs-pin path { fill: #7ce8a6; opacity: 0.85; }
+.rs-pin .dot { fill: #06281a; }
+.rs-pin .ring {
+  fill: none;
+  stroke: #9dffc2;
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rs-ping 2.6s ease-out infinite;
+}
+.rs-pin.p2 .ring { animation-delay: -0.9s; }
+.rs-pin.p3 .ring { animation-delay: -1.7s; }
+.rs-pin path, .rs-pin .dot {
+  animation: rs-pin-hop 2.6s ease-in-out infinite;
+}
+.rs-pin.p2 path, .rs-pin.p2 .dot { animation-delay: -0.9s; }
+.rs-pin.p3 path, .rs-pin.p3 .dot { animation-delay: -1.7s; }
+@keyframes rs-ping {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(4.2); opacity: 0; }
+}
+@keyframes rs-pin-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.rs-tracker {
+  offset-path: path("M-20 240C150 120 300 280 480 170S800 40 980 140 1180 220 1240 100");
+  offset-rotate: 0deg;
+  animation: rs-track 14s linear infinite;
+}
+.rs-tracker circle { fill: #fff6c8; }
+.rs-tracker .halo {
+  fill: rgba(255, 246, 200, 0.25);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rs-halo 1.4s ease-in-out infinite;
+}
+@keyframes rs-track {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+@keyframes rs-halo {
+  0%, 100% { transform: scale(0.8); opacity: 0.9; }
+  50% { transform: scale(1.5); opacity: 0.2; }
+}
+
+/* parallax hills + trees */
+.rs-layer {
+  left: 0;
+  width: 200%;
+  will-change: transform;
+}
+.rs-layer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.rs-layer.far {
+  bottom: 70px;
+  height: 36vh;
+  animation: rs-scroll 90s linear infinite;
+}
+.rs-layer.far svg path { fill: #0b3f36; opacity: 0.85; }
+.rs-layer.mid {
+  bottom: 62px;
+  height: 22vh;
+  animation: rs-scroll 34s linear infinite;
+}
+.rs-layer.mid svg rect, .rs-layer.mid svg circle { fill: #0a2f26; }
+.rs-layer.mid svg .lamp {
+  fill: #ffe9a0;
+  filter: drop-shadow(0 0 6px rgba(255, 233, 160, 0.9));
+  animation: rs-lamp 4s ease-in-out infinite;
+}
+@keyframes rs-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rs-lamp {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* road */
+.rs-road {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 84px;
+  background: linear-gradient(180deg, #0a241d 0%, #051611 100%);
+  border-top: 2px solid rgba(160, 255, 200, 0.28);
+  box-shadow: 0 -10px 30px rgba(120, 255, 180, 0.08);
+}
+.rs-lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.6) 0 38px, transparent 38px 88px);
+  animation: rs-lane 0.9s linear infinite;
+}
+@keyframes rs-lane {
+  to { background-position-x: -88px; }
+}
+
+/* bikes */
+.rs-bike {
+  left: 0;
+  color: #eafff1;
+}
+.rs-bike svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  stroke: #8ff0b4;
+  animation: rs-bob 0.5s ease-in-out infinite alternate;
+}
+.rs-bike .rs-rider { stroke: #eafff1; }
+.rs-bike .rs-leg { stroke-width: 4.6; }
+.rs-bike .rs-crank { stroke: #bff7d3; }
+.rs-bike .rs-wind { stroke: rgba(190, 255, 215, 0.5); stroke-width: 2; animation: rs-wind 0.45s ease-in-out infinite alternate; }
+.rs-bike .rs-spin {
+  transform-origin: 0 0;
+  animation: rs-spin 0.7s linear infinite;
+}
+.rs-bike.b1 { width: 190px; bottom: 26px; animation: rs-ride 17s linear infinite; }
+.rs-bike.b2 { width: 112px; bottom: 50px; opacity: 0.55; animation: rs-ride-back 27s linear infinite -11s; }
+.rs-bike.b2 .rs-spin { animation-duration: 1s; }
+@keyframes rs-spin { to { transform: rotate(360deg); } }
+@keyframes rs-bob { from { transform: translateY(0); } to { transform: translateY(-2.5px); } }
+@keyframes rs-wind { from { opacity: 0.25; transform: translateX(-4px); } to { opacity: 0.9; transform: translateX(3px); } }
+@keyframes rs-ride {
+  from { transform: translateX(-26vw); }
+  to { transform: translateX(112vw); }
+}
+@keyframes rs-ride-back {
+  from { transform: translateX(112vw) scaleX(-1); }
+  to { transform: translateX(-26vw) scaleX(-1); }
+}
+
+/* ==========================================================================
+   Page content motion
+   ========================================================================== */
+body.gc-pub.is-auth > .gc-nav,
+body.gc-pub.is-auth > .gc-stage {
+  z-index: 3;
+}
+
+/* welcome column */
+.is-auth .gc-welcome h1 {
+  animation: rs-slide-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  background: linear-gradient(100deg, #fff 30%, #b9ffd2 50%, #fff 70%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 3px 14px rgba(0, 20, 10, 0.5));
+  animation: rs-slide-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards, rs-shine 6s ease-in-out 1s infinite;
+}
+.is-auth .gc-welcome p {
+  animation: rs-slide-in 0.8s 0.12s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.is-auth .gc-welcome .streak {
+  position: relative;
+  overflow: hidden;
+  animation: rs-streak 2.2s ease-in-out infinite;
+}
+.is-auth .gc-perks li {
+  animation: rs-slide-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: transform 0.25s, background 0.25s;
+}
+.is-auth .gc-perks li:nth-child(1) { animation-delay: 0.25s; }
+.is-auth .gc-perks li:nth-child(2) { animation-delay: 0.4s; }
+.is-auth .gc-perks li:nth-child(3) { animation-delay: 0.55s; }
+.is-auth .gc-perks li:hover {
+  transform: translateX(6px);
+  background: rgba(255, 255, 255, 0.16);
+}
+.is-auth .gc-perks .gc-ico {
+  animation: rs-icon-bob 2.8s ease-in-out infinite;
+}
+.is-auth .gc-perks li:nth-child(2) .gc-ico { animation-delay: -0.9s; }
+.is-auth .gc-perks li:nth-child(3) .gc-ico { animation-delay: -1.8s; }
+@keyframes rs-slide-in {
+  from { opacity: 0; transform: translateX(-28px); }
+}
+@keyframes rs-shine {
+  0%, 20% { background-position: 100% 0; }
+  60%, 100% { background-position: -100% 0; }
+}
+@keyframes rs-streak {
+  0%, 100% { transform: rotate(-9deg) scaleX(0.55); opacity: 0.6; transform-origin: left; }
+  50% { transform: rotate(-9deg) scaleX(1.15); opacity: 1; transform-origin: left; }
+}
+@keyframes rs-icon-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(-6deg); }
+}
+
+/* card: rise-in + travelling light around the edge */
+.is-auth .gc-card {
+  animation: rs-rise 0.75s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+}
+.is-auth .gc-card::before,
+.is-auth .gc-card::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 29px;
+  z-index: -1;
+  background: conic-gradient(from var(--rs-angle), transparent 0 62%, rgba(134, 224, 160, 0.95) 80%, #fff 88%, transparent 96%);
+  animation: rs-orbit 5s linear infinite;
+  pointer-events: none;
+}
+.is-auth .gc-card::after {
+  filter: blur(14px);
+  opacity: 0.7;
+}
+@keyframes rs-orbit {
+  to { --rs-angle: 360deg; }
+}
+@keyframes rs-rise {
+  from { opacity: 0; transform: translateY(34px) scale(0.96); }
+}
+
+/* badge: spinning wheel ring + pulse */
+.is-auth .gc-badge {
+  animation: rs-badge 3s ease-in-out infinite;
+}
+.is-auth .gc-badge::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px dashed rgba(30, 122, 71, 0.75);
+  animation: rs-spin 7s linear infinite;
+}
+.is-auth .gc-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(134, 224, 160, 0.8);
+  animation: rs-badge-ping 2.4s ease-out infinite;
+}
+.is-auth .gc-badge .gc-ico {
+  animation: rs-icon-bob 2s ease-in-out infinite;
+}
+@keyframes rs-badge {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+@keyframes rs-badge-ping {
+  from { transform: scale(1); opacity: 0.9; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+/* form fields */
+.is-auth .gc-form input,
+.is-auth .gc-form select {
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.2s, background 0.2s;
+}
+.is-auth .gc-form input:focus,
+.is-auth .gc-form select:focus {
+  transform: translateY(-1px);
+}
+.is-auth .gc-form .gc-input .lead {
+  transition: color 0.2s, transform 0.3s;
+}
+.is-auth .gc-form .gc-input:focus-within .lead {
+  color: var(--btn);
+  animation: rs-lead 0.5s ease;
+}
+@keyframes rs-lead {
+  40% { transform: translateY(-50%) scale(1.3) rotate(-8deg); }
+}
+.is-auth .form-message:not(:empty) {
+  animation: rs-shake 0.45s;
+}
+@keyframes rs-shake {
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* buttons: shimmer sweep + nudging arrow */
+.is-auth .gc-submit,
+.is-auth .wizard-next,
+.is-auth .register-button {
+  overflow: hidden;
+  background: linear-gradient(100deg, #1e7a47, #2a9a5c 50%, #1e7a47) 0 0 / 200% 100%;
+  box-shadow: 0 8px 22px rgba(30, 122, 71, 0.35);
+  transition: transform 0.15s, box-shadow 0.25s, background-position 0.5s;
+}
+.is-auth .gc-submit:hover,
+.is-auth .wizard-next:hover,
+.is-auth .register-button:hover {
+  background-position: 100% 0;
+  box-shadow: 0 12px 28px rgba(30, 122, 71, 0.5);
+  transform: translateY(-2px);
+}
+.is-auth .gc-submit::after,
+.is-auth .wizard-next::after,
+.is-auth .register-button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: rs-sheen 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.is-auth .gc-submit .gc-ico,
+.is-auth .wizard-next .gc-ico,
+.is-auth .register-button .gc-ico {
+  animation: rs-nudge 1.4s ease-in-out infinite;
+}
+@keyframes rs-sheen {
+  0%, 55% { left: -60%; }
+  100% { left: 130%; }
+}
+@keyframes rs-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+/* register wizard */
+.is-auth .register-step.active {
+  animation: rs-step 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes rs-step {
+  from { opacity: 0; transform: translateX(26px); }
+}
+.is-auth .wizard-step {
+  transition: background 0.4s, color 0.4s, transform 0.3s;
+}
+.is-auth .wizard-step.active {
+  animation: rs-step-pulse 2s ease-in-out infinite;
+}
+.is-auth .wizard-step.done i {
+  animation: rs-pop 0.4s;
+}
+@keyframes rs-step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(30, 122, 71, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(30, 122, 71, 0); }
+}
+@keyframes rs-pop {
+  50% { transform: scale(1.4); }
+}
+
+/* ---------- Small screens: fewer, lighter moving parts ---------- */
+@media (max-width: 720px) {
+  .rs-moon { display: none; }
+  .rs-route { top: 8vh; opacity: 0.55; }
+  .rs-bike.b1 { width: 140px; }
+  .rs-bike.b2 { display: none; }
+  .rs-cloud.c3 { display: none; }
+}
+
+/* ---------- Respect reduced-motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .gc-ride-scene *,
+  .is-auth .gc-card,
+  .is-auth .gc-card::before,
+  .is-auth .gc-card::after,
+  .is-auth .gc-badge,
+  .is-auth .gc-badge::before,
+  .is-auth .gc-badge::after,
+  .is-auth .gc-welcome *,
+  .is-auth .gc-form *,
+  .is-auth .register-step,
+  .is-auth .wizard-step {
+    animation: none !important;
+  }
+  .is-auth .gc-welcome h1 {
+    -webkit-text-fill-color: #fff;
+    background: none;
+  }
+  .rs-bike.b1 { transform: translateX(14vw); }
+  .rs-bike.b2 { transform: translateX(62vw) scaleX(-1); }
+}
+
+/* ==========================================================================
+   Forgot password / Verify / Privacy notice
+   ========================================================================== */
+.is-auth .gc-stage.is-single .gc-card {
+  animation: rs-rise 0.75s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+}
+.is-auth .gc-or span {
+  position: relative;
+}
+.is-auth .gc-switch a {
+  position: relative;
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat;
+  transition: background-size 0.35s;
+}
+.is-auth .gc-switch a:hover {
+  background-size: 100% 2px;
+}
+.is-auth .captcha-box {
+  animation: rs-slide-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s backwards;
+}
+.is-auth .captcha-refresh:hover {
+  animation: rs-wobble 0.5s;
+}
+@keyframes rs-wobble {
+  25% { transform: rotate(-4deg); }
+  75% { transform: rotate(4deg); }
+}
+
+/* privacy notice */
+.privacy-page .privacy-card {
+  animation: rs-rise 0.8s cubic-bezier(0.2, 0.9, 0.25, 1) backwards;
+}
+.privacy-page .privacy-badge {
+  position: relative;
+  animation: rs-badge-soft 3s ease-in-out infinite;
+}
+.privacy-page .privacy-badge::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px dashed rgba(30, 122, 71, 0.7);
+  animation: rs-spin 8s linear infinite;
+}
+.privacy-page .privacy-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(134, 224, 160, 0.8);
+  animation: rs-badge-ping 2.4s ease-out infinite;
+}
+@keyframes rs-badge-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.privacy-page .privacy-eyebrow {
+  background: linear-gradient(100deg, currentColor 35%, #86e0a0 50%, currentColor 65%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rs-shine 5s ease-in-out infinite;
+}
+.privacy-page .privacy-draft-note {
+  position: relative;
+  overflow: hidden;
+}
+.privacy-page .privacy-draft-note::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgba(134, 224, 160, 0.3), transparent);
+  transform: skewX(-20deg);
+  animation: rs-sheen 5s ease-in-out infinite;
+}
+.privacy-page .privacy-section h2 span {
+  animation: rs-step-pulse 2.6s ease-in-out infinite;
+}
+.privacy-page .privacy-info-grid > div {
+  transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s, opacity 0.7s var(--pv-d, 0ms) ease;
+}
+.privacy-page .privacy-info-grid > div.in:hover,
+.privacy-page .privacy-info-grid > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 30px rgba(20, 60, 40, 0.18);
+  border-color: rgba(30, 122, 71, 0.55);
+}
+.privacy-page .privacy-return span,
+.privacy-page .privacy-return-primary span {
+  display: inline-block;
+  animation: rs-back 1.5s ease-in-out infinite;
+}
+@keyframes rs-back {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-4px); }
+}
+.pv-rv {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--pv-d, 0ms) ease, transform 0.7s var(--pv-d, 0ms) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pv-rv.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .privacy-page *, .privacy-page *::before, .privacy-page *::after { animation: none !important; }
+  .pv-rv { opacity: 1; transform: none; transition: none; }
+}
+
+/* icon stays above the lifted input while it is focused */
+.is-auth .gc-form .gc-input .lead { z-index: 2; }
+.is-auth .gc-form .gc-input .password-toggle { z-index: 2; }
+/* hint line under the submit button needs breathing room */
+.is-auth .gc-form + .gc-otp-note { margin-top: 16px !important; margin-bottom: 4px; text-align: center; }
+
+.resend-note { margin: 8px 0 0; font-size: .8rem; text-align: center; color: var(--muted, #5b6b62); min-height: 1em; }
+.resend-button:disabled { opacity: .55; cursor: not-allowed; }
+
+.otp-expiry { margin: 12px 0 0; text-align: center; font-weight: 700; font-size: .9rem; color: var(--btn, #1e7a47); font-variant-numeric: tabular-nums; }
+.otp-expiry.is-expired { color: #b3261e; }

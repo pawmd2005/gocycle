@@ -1,0 +1,588 @@
+/* ==========================================================================
+   GoCycle – animated User + Admin workspace (dashboard, bookings, users…)
+   Night-green sidebar, gradient hero with a slowly turning wheel, count-up
+   numbers, staggered cards, plus the session-timeout reminder styles.
+   Loaded after workspace.css on every signed-in page.
+   ========================================================================== */
+
+:root {
+  --dm-ink: #0d2e23;
+  --dm-green: #1e7a47;
+  --dm-mint: #86e0a0;
+  --dm-card: #ffffff;
+  --dm-line: #dfe9e1;
+  --dm-shadow: 0 10px 30px rgba(14, 60, 40, 0.08);
+  --dm-shadow-up: 0 18px 40px rgba(14, 60, 40, 0.16);
+}
+
+@property --dm-ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ---------- Page background: soft drifting colour ---------- */
+html body.dashboard-body {
+  background: #eaf3ec;
+  position: relative;
+}
+html body.dashboard-body::before,
+html body.dashboard-body::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+html body.dashboard-body::before {
+  top: -160px;
+  right: -120px;
+  background: #b9efcb;
+  animation: dm-drift 22s ease-in-out infinite alternate;
+}
+html body.dashboard-body::after {
+  bottom: -200px;
+  left: 30%;
+  background: #cfe8ff;
+  animation: dm-drift 28s ease-in-out -8s infinite alternate-reverse;
+}
+@keyframes dm-drift {
+  to { transform: translate(-120px, 90px) scale(1.15); }
+}
+html body.dashboard-body .app-shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Sidebar ---------- */
+html body.dashboard-body .sidebar {
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgba(47, 174, 111, 0.28), transparent 60%),
+    linear-gradient(180deg, #0a2a20 0%, #0b3326 55%, #082219 100%);
+  border-right: 1px solid rgba(134, 224, 160, 0.14);
+  box-shadow: 8px 0 30px rgba(6, 30, 20, 0.18);
+  overflow: hidden;
+}
+html body.dashboard-body .sidebar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--dm-mint), transparent);
+  background-size: 100% 220%;
+  opacity: 0.6;
+  animation: dm-edge 5s linear infinite;
+  pointer-events: none;
+}
+@keyframes dm-edge {
+  from { background-position: 0 -120%; }
+  to { background-position: 0 120%; }
+}
+html body.dashboard-body .sidebar .nav-link {
+  position: relative;
+  transition: transform 0.25s, background 0.25s, color 0.25s;
+  animation: dm-slide 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html body.dashboard-body .sidebar .nav-link:nth-of-type(1) { animation-delay: 0.05s; }
+html body.dashboard-body .sidebar .nav-link:nth-of-type(2) { animation-delay: 0.12s; }
+html body.dashboard-body .sidebar .nav-link:nth-of-type(3) { animation-delay: 0.19s; }
+html body.dashboard-body .sidebar .nav-link:nth-of-type(4) { animation-delay: 0.26s; }
+html body.dashboard-body .sidebar .nav-link:nth-of-type(5) { animation-delay: 0.33s; }
+@keyframes dm-slide {
+  from { opacity: 0; transform: translateX(-22px); }
+}
+html body.dashboard-body .sidebar .nav-link:hover {
+  transform: translateX(5px);
+  background: rgba(134, 224, 160, 0.12);
+}
+html body.dashboard-body .sidebar .nav-link .nav-icon {
+  transition: transform 0.3s;
+}
+html body.dashboard-body .sidebar .nav-link:hover .nav-icon {
+  transform: scale(1.15) rotate(-8deg);
+}
+html body.dashboard-body .sidebar .nav-link.active {
+  background: linear-gradient(100deg, #2a9a5c, #1e7a47);
+  box-shadow: 0 8px 22px rgba(30, 160, 90, 0.35);
+}
+html body.dashboard-body .sidebar .nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 20%;
+  bottom: 20%;
+  width: 5px;
+  border-radius: 0 6px 6px 0;
+  background: var(--dm-mint);
+  box-shadow: 0 0 12px var(--dm-mint);
+  animation: dm-glow 2s ease-in-out infinite;
+}
+@keyframes dm-glow {
+  50% { opacity: 0.45; }
+}
+html body.dashboard-body .sidebar .logout-link:hover {
+  background: rgba(255, 90, 90, 0.16);
+}
+html body.dashboard-body .avatar {
+  animation: dm-ping 3s ease-out infinite;
+}
+@keyframes dm-ping {
+  0% { box-shadow: 0 0 0 0 rgba(134, 224, 160, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 10px rgba(134, 224, 160, 0); }
+}
+html body.dashboard-body .notification-badge {
+  animation: dm-badge 1.6s ease-in-out infinite;
+}
+@keyframes dm-badge {
+  50% { transform: scale(1.18); }
+}
+
+/* ---------- Top bar ---------- */
+html body.dashboard-body .topbar h1 {
+  animation: dm-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html body.dashboard-body .topbar .eyebrow {
+  animation: dm-rise 0.6s 0.05s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html body.dashboard-body .topbar .notification-link,
+html body.dashboard-body .topbar .topbar-profile {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--dm-line);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+html body.dashboard-body .topbar .notification-link:hover,
+html body.dashboard-body .topbar .topbar-profile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--dm-shadow);
+}
+html body.dashboard-body .notification-link .notification-icon {
+  display: inline-block;
+  transform-origin: 50% 0;
+}
+html body.dashboard-body .notification-link:has(.notification-badge) .notification-icon {
+  animation: dm-bell 4s ease-in-out infinite;
+}
+@keyframes dm-bell {
+  0%, 82%, 100% { transform: rotate(0); }
+  86% { transform: rotate(16deg); }
+  90% { transform: rotate(-14deg); }
+  94% { transform: rotate(8deg); }
+  97% { transform: rotate(-4deg); }
+}
+
+/* ---------- Staggered entrance ---------- */
+html body.dashboard-body .main-content > *:not(.topbar) {
+  animation: dm-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html body.dashboard-body .main-content > *:nth-child(2) { animation-delay: 0.05s; }
+html body.dashboard-body .main-content > *:nth-child(3) { animation-delay: 0.12s; }
+html body.dashboard-body .main-content > *:nth-child(4) { animation-delay: 0.2s; }
+html body.dashboard-body .main-content > *:nth-child(5) { animation-delay: 0.28s; }
+html body.dashboard-body .main-content > *:nth-child(n + 6) { animation-delay: 0.36s; }
+html body.dashboard-body .ws-grid > *,
+html body.dashboard-body .monitor-summary-grid > *,
+html body.dashboard-body .monitor-columns > * {
+  animation: dm-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html body.dashboard-body .ws-grid > *:nth-child(1),
+html body.dashboard-body .monitor-summary-grid > *:nth-child(1) { animation-delay: 0.15s; }
+html body.dashboard-body .ws-grid > *:nth-child(2),
+html body.dashboard-body .monitor-summary-grid > *:nth-child(2) { animation-delay: 0.23s; }
+html body.dashboard-body .ws-grid > *:nth-child(3),
+html body.dashboard-body .monitor-summary-grid > *:nth-child(3) { animation-delay: 0.31s; }
+html body.dashboard-body .ws-grid > *:nth-child(4),
+html body.dashboard-body .monitor-summary-grid > *:nth-child(4) { animation-delay: 0.39s; }
+html body.dashboard-body .monitor-summary-grid > *:nth-child(n + 5) { animation-delay: 0.47s; }
+@keyframes dm-rise {
+  from { opacity: 0; transform: translateY(22px); }
+}
+
+/* ---------- Hero banners (user hero + owner booking desk) ---------- */
+html body.dashboard-body .ws-hero,
+html body.dashboard-body .admin-booking-prompt {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  border: 0;
+  border-radius: 22px;
+  background:
+    radial-gradient(60% 120% at 85% 0%, rgba(134, 224, 160, 0.35), transparent 60%),
+    linear-gradient(120deg, #0a2a20, #0f4a35 55%, #168a5a);
+  background-size: 140% 140%, 100% 100%;
+  animation: dm-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards, dm-hero 14s ease-in-out infinite alternate;
+  box-shadow: 0 20px 44px rgba(10, 60, 40, 0.28);
+}
+@keyframes dm-hero {
+  to { background-position: 100% 100%, 0 0; }
+}
+/* turning wheel */
+html body.dashboard-body .ws-hero::after,
+html body.dashboard-body .admin-booking-prompt::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -70px;
+  top: 50%;
+  width: 300px;
+  height: 300px;
+  margin-top: -150px;
+  opacity: 0.2;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-100 -100 200 200' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'%3E%3Ccircle r='94' stroke-width='7'/%3E%3Ccircle r='84' stroke-width='1.5'/%3E%3Ccircle r='10' stroke-width='5'/%3E%3Cpath d='M0 -84V-10M0 10V84M-84 0H-10M10 0H84M-59 -59L-7 -7M7 7L59 59M59 -59L7 -7M-7 7L-59 59M-78 -32L-9 -4M9 4L78 32M-32 -78L-4 -9M4 9L32 78M78 -32L9 -4M-9 4L-78 32M32 -78L4 -9M-4 9L-32 78' stroke-width='1.4'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: dm-wheel 18s linear infinite;
+  pointer-events: none;
+}
+@keyframes dm-wheel {
+  to { transform: rotate(360deg); }
+}
+/* moving road line along the bottom */
+html body.dashboard-body .ws-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  height: 3px;
+  opacity: 0.35;
+  background: repeating-linear-gradient(90deg, #fff 0 28px, transparent 28px 64px);
+  animation: dm-road 1.6s linear infinite;
+  pointer-events: none;
+}
+@keyframes dm-road {
+  to { background-position-x: -64px; }
+}
+html body.dashboard-body .ws-hero h2,
+html body.dashboard-body .admin-booking-prompt h2 {
+  color: #fff;
+}
+html body.dashboard-body .ws-hero .ws-kicker,
+html body.dashboard-body .admin-booking-prompt .owner-kicker {
+  color: var(--dm-mint);
+  letter-spacing: 0.14em;
+}
+html body.dashboard-body .ws-hero p,
+html body.dashboard-body .admin-booking-prompt p {
+  color: rgba(255, 255, 255, 0.82);
+}
+html body.dashboard-body .ws-hero h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+html body.dashboard-body .ws-btn-solid,
+html body.dashboard-body .admin-booking-prompt .primary-action {
+  position: relative;
+  overflow: hidden;
+  background: #fff !important;
+  color: #0b3326 !important;
+  border: 0;
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s, box-shadow 0.25s;
+}
+html body.dashboard-body .ws-btn-solid:hover,
+html body.dashboard-body .admin-booking-prompt .primary-action:hover {
+  color: #0b3326 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
+}
+html body.dashboard-body .ws-btn-solid::after,
+html body.dashboard-body .admin-booking-prompt .primary-action::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(30, 160, 90, 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: dm-sheen 3.8s ease-in-out infinite;
+}
+@keyframes dm-sheen {
+  0%, 55% { left: -60%; }
+  100% { left: 130%; }
+}
+html body.dashboard-body .ws-btn-ghost {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s, background 0.2s;
+}
+html body.dashboard-body .ws-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ---------- Cards, KPIs, metrics ---------- */
+html body.dashboard-body .ws-card,
+html body.dashboard-body .content-card,
+html body.dashboard-body .ws-kpi,
+html body.dashboard-body .ws-action,
+html body.dashboard-body .monitor-metric,
+html body.dashboard-body .monitor-intro {
+  background: var(--dm-card);
+  border: 1px solid var(--dm-line);
+  border-radius: 18px;
+  box-shadow: var(--dm-shadow);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+}
+html body.dashboard-body a.ws-kpi:hover,
+html body.dashboard-body .ws-action:hover,
+html body.dashboard-body .monitor-metric:hover,
+html body.dashboard-body .ws-card:hover,
+html body.dashboard-body .content-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--dm-shadow-up);
+  border-color: rgba(30, 122, 71, 0.45);
+}
+html body.dashboard-body .content-card:hover,
+html body.dashboard-body .ws-card:hover {
+  transform: translateY(-2px);
+}
+html body.dashboard-body .ws-kpi,
+html body.dashboard-body .monitor-metric {
+  position: relative;
+  overflow: hidden;
+}
+html body.dashboard-body .ws-kpi::after,
+html body.dashboard-body .monitor-metric::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--dm-mint), var(--dm-green), transparent);
+  background-size: 220% 100%;
+  animation: dm-bar 3.6s linear infinite;
+}
+@keyframes dm-bar {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+html body.dashboard-body .ws-kpi.is-warn::after { filter: hue-rotate(-90deg) saturate(1.6); }
+html body.dashboard-body .ws-kpi.is-alert::after { filter: hue-rotate(-140deg) saturate(2); }
+html body.dashboard-body .ws-kpi strong,
+html body.dashboard-body .monitor-metric strong {
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(120deg, #0d2e23, #1e7a47);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html body.dashboard-body .ws-kpi-ico {
+  transition: transform 0.35s;
+  animation: dm-float 3.4s ease-in-out infinite;
+}
+html body.dashboard-body .ws-kpi:nth-child(2) .ws-kpi-ico { animation-delay: -0.8s; }
+html body.dashboard-body .ws-kpi:nth-child(3) .ws-kpi-ico { animation-delay: -1.6s; }
+html body.dashboard-body .ws-kpi:nth-child(4) .ws-kpi-ico { animation-delay: -2.4s; }
+html body.dashboard-body .ws-action:hover .ws-kpi-ico,
+html body.dashboard-body .ws-kpi:hover .ws-kpi-ico {
+  transform: rotate(-12deg) scale(1.15);
+}
+@keyframes dm-float {
+  50% { translate: 0 -4px; }
+}
+html body.dashboard-body .ws-action .ws-go {
+  display: inline-block;
+  transition: transform 0.3s;
+}
+html body.dashboard-body .ws-action:hover .ws-go {
+  transform: translateX(6px);
+}
+html body.dashboard-body .ws-pill,
+html body.dashboard-body .status-pill {
+  background: linear-gradient(100deg, #e4f6ea, #f3fbf6);
+  border: 1px solid #cbe9d6;
+  color: #1a6a40;
+}
+
+/* lists, bars, status */
+html body.dashboard-body .ws-list li {
+  transition: transform 0.25s, background 0.25s, border-color 0.25s;
+}
+html body.dashboard-body .ws-list li:hover {
+  transform: translateX(6px);
+  background: #f1faf4;
+  border-color: #b9e0c7;
+}
+html body.dashboard-body .ws-bar i b {
+  transform-origin: left center;
+  animation: dm-grow 1.1s 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  background-image: linear-gradient(90deg, #2fae6f, #86e0a0, #2fae6f);
+  background-size: 200% 100%;
+}
+@keyframes dm-grow {
+  from { transform: scaleX(0); }
+}
+html body.dashboard-body .booking-status-pending {
+  animation: dm-pending 2.4s ease-in-out infinite;
+}
+@keyframes dm-pending {
+  50% { box-shadow: 0 0 0 5px rgba(240, 170, 40, 0.18); }
+}
+
+/* admin tables + filters */
+html body.dashboard-body .admin-table thead th {
+  background: linear-gradient(180deg, #f1f8f3, #e8f3ec);
+  color: #195b38;
+}
+html body.dashboard-body .admin-table tbody tr {
+  transition: background 0.2s, transform 0.2s;
+}
+html body.dashboard-body .admin-table tbody tr:hover {
+  background: #f1faf4;
+}
+html body.dashboard-body .monitor-filters input,
+html body.dashboard-body .monitor-filters select {
+  transition: border-color 0.2s, box-shadow 0.25s;
+}
+html body.dashboard-body .monitor-filters input:focus,
+html body.dashboard-body .monitor-filters select:focus {
+  border-color: var(--dm-green);
+  box-shadow: 0 0 0 4px rgba(30, 122, 71, 0.15);
+  outline: none;
+}
+html body.dashboard-body .monitor-refresh::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #2fae6f;
+  animation: dm-ping 1.8s ease-out infinite;
+}
+html body.dashboard-body .primary-action {
+  transition: transform 0.2s, box-shadow 0.25s;
+}
+html body.dashboard-body .primary-action:hover {
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Session reminder (chip + popups)
+   ========================================================================== */
+.gc-session-backdrop {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: dm-fade 0.25s ease backwards;
+}
+@keyframes dm-fade {
+  from { opacity: 0; }
+}
+.gc-session-modal {
+  text-align: center;
+  animation: dm-pop 0.45s cubic-bezier(0.2, 1.1, 0.3, 1) backwards;
+}
+@keyframes dm-pop {
+  from { opacity: 0; transform: translateY(24px) scale(0.92); }
+}
+.gc-session-ring {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 14px;
+  --p: 1;
+}
+.gc-session-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.gc-session-ring circle {
+  fill: none;
+  stroke-width: 7;
+}
+.gc-session-ring .track {
+  stroke: #e3efe7;
+}
+.gc-session-ring .bar {
+  stroke: #e0a21b;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--p) * 100);
+  transition: stroke-dashoffset 1s linear;
+}
+.gc-session-modal.is-expired .bar {
+  stroke: #d64538;
+  stroke-dashoffset: 0;
+}
+.gc-session-count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0d2e23;
+}
+.gc-session-modal.is-warning .gc-session-ring {
+  animation: dm-chip-pulse 1.2s ease-in-out infinite;
+  border-radius: 50%;
+}
+.gc-session-modal .gc-modal-btn {
+  font: inherit;
+  font-weight: 700;
+}
+.gc-session-modal .gc-modal-actions a.gc-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.gc-session-note {
+  display: block;
+  margin-top: 12px;
+  color: #6c7a70;
+}
+.gc-session-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 10000;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #0d2e23;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+  transform: translateX(-50%);
+  animation: dm-toast 0.4s cubic-bezier(0.2, 1.1, 0.3, 1) backwards;
+  transition: opacity 0.5s, transform 0.5s;
+}
+.gc-session-toast.is-out {
+  opacity: 0;
+  transform: translate(-50%, 14px);
+}
+@keyframes dm-toast {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+@media (max-width: 900px) {
+  html body.dashboard-body .ws-hero::after,
+  html body.dashboard-body .admin-booking-prompt::after { width: 200px; height: 200px; margin-top: -100px; right: -60px; }
+  html body.dashboard-body .sidebar .nav-link.active::before { left: -12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.dashboard-body *,
+  html body.dashboard-body *::before,
+  html body.dashboard-body *::after,
+  .gc-session-modal {
+    animation: none !important;
+  }
+  html body.dashboard-body .ws-bar i b { transform: none; }
+}
+
+@keyframes dm-chip-pulse {
+  50% { box-shadow: 0 0 0 8px rgba(214, 160, 30, 0.2); }
+}

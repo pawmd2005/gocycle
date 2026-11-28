@@ -1,302 +1,159 @@
 <?php
 
-$target = "http://localhost/bruteforce_lab/login.php";
+$target = 'http://localhost/bruteforce_lab/login.php';
 
-$login_type = "username";
+$login_type = 'username';
 
-$login_value = "pau";
+$login_value = 'pau';
 
-$password_field = "password";
-
+$password_field = 'password';
 
 $common_passwords = [
-    "1234",
-    "12345",
-    "123456",
-    "12345678",
-    "password",
-    "password123",
-    "admin",
-    "admin123",
-    "admin1234",
-    "qwerty",
-    "welcome",
-    "haha12",
-    "student123"
+    '1234',
+    '12345',
+    '123456',
+    '12345678',
+    'password',
+    'password123',
+    'admin',
+    'admin123',
+    'admin1234',
+    'qwerty',
+    'welcome',
+    'haha12',
+    'student123',
 ];
-
 
 $numeric_passwords = [];
 
 for ($i = 0; $i <= 5000; $i++) {
-
-    $numeric_passwords[] =
-        str_pad(
-            $i,
-            5,
-            "0",
-            STR_PAD_LEFT
-        );
+    $numeric_passwords[] = str_pad($i, 5, '0', STR_PAD_LEFT);
 }
 
+$password_list = array_merge($common_passwords, $numeric_passwords);
 
-$password_list = array_merge(
-    $common_passwords,
-    $numeric_passwords
-);
-
-$password_list = array_values(
-    array_unique($password_list)
-);
-
+$password_list = array_values(array_unique($password_list));
 
 $parsed_url = parse_url($target);
 
-$host = $parsed_url["host"] ?? "";
+$host = $parsed_url['host'] ?? '';
 
-$allowed_hosts = [
-    "localhost",
-    "127.0.0.1",
-    "::1"
-];
+$allowed_hosts = ['localhost', '127.0.0.1', '::1'];
 
 if (!in_array($host, $allowed_hosts, true)) {
-
     http_response_code(403);
 
-    die(
-        "ACCESS DENIED\n\n"
-        . "This laboratory tool only accepts localhost targets."
-    );
+    die("ACCESS DENIED\n\n" . 'This laboratory tool only accepts localhost targets.');
 }
 
-
-function test_login(
-    $url,
-    $login_type,
-    $login_value,
-    $password_field,
-    $password,
-    $cookie_file
-) {
-
+function test_login($url, $login_type, $login_value, $password_field, $password, $cookie_file)
+{
     $post_data = [];
 
-    if ($login_type === "username") {
-
-        $post_data["username"] =
-            $login_value;
-
-    } elseif ($login_type === "email") {
-
-        $post_data["email"] =
-            $login_value;
-
+    if ($login_type === 'username') {
+        $post_data['username'] = $login_value;
+    } elseif ($login_type === 'email') {
+        $post_data['email'] = $login_value;
     } else {
-
         return [
-            "success" => false,
-            "locked" => false,
-            "http_code" => 0,
-            "error" => "Invalid login type."
+            'success' => false,
+            'locked' => false,
+            'http_code' => 0,
+            'error' => 'Invalid login type.',
         ];
     }
 
-    $post_data[$password_field] =
-        $password;
-
+    $post_data[$password_field] = $password;
 
     $ch = curl_init($url);
 
+    curl_setopt($ch, CURLOPT_POST, true);
 
-    curl_setopt(
-        $ch,
-        CURLOPT_POST,
-        true
-    );
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
 
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    curl_setopt(
-        $ch,
-        CURLOPT_POSTFIELDS,
-        http_build_query($post_data)
-    );
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
 
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-    curl_setopt(
-        $ch,
-        CURLOPT_RETURNTRANSFER,
-        true
-    );
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Cyber-Lab-Localhost-Tester/1.0');
 
-    curl_setopt(
-        $ch,
-        CURLOPT_FOLLOWLOCATION,
-        false
-    );
+    curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
 
-
-    curl_setopt(
-        $ch,
-        CURLOPT_TIMEOUT,
-        10
-    );
-
-
-    curl_setopt(
-        $ch,
-        CURLOPT_CONNECTTIMEOUT,
-        5
-    );
-
-
-    curl_setopt(
-        $ch,
-        CURLOPT_USERAGENT,
-        "Cyber-Lab-Localhost-Tester/1.0"
-    );
-
-
-    curl_setopt(
-        $ch,
-        CURLOPT_COOKIEJAR,
-        $cookie_file
-    );
-
-    curl_setopt(
-        $ch,
-        CURLOPT_COOKIEFILE,
-        $cookie_file
-    );
-
+    curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
 
     $response = curl_exec($ch);
 
-
     if ($response === false) {
-
-        $error =
-            curl_error($ch);
+        $error = curl_error($ch);
 
         curl_close($ch);
 
         return [
-            "success" => false,
-            "locked" => false,
-            "http_code" => 0,
-            "error" => $error
+            'success' => false,
+            'locked' => false,
+            'http_code' => 0,
+            'error' => $error,
         ];
     }
 
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-    $http_code =
-        curl_getinfo(
-            $ch,
-            CURLINFO_HTTP_CODE
-        );
-
-
-    $redirect =
-        curl_getinfo(
-            $ch,
-            CURLINFO_REDIRECT_URL
-        );
-
+    $redirect = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
 
     curl_close($ch);
 
+    $locked = stripos($response, 'Account temporarily locked') !== false;
 
-    $locked =
-        stripos(
-            $response,
-            "Account temporarily locked"
-        ) !== false;
-
-
-    $success =
-        stripos(
-            $response,
-            "Login successful!"
-        ) !== false;
-
+    $success = stripos($response, 'Login successful!') !== false;
 
     return [
+        'success' => $success,
 
-        "success" => $success,
+        'locked' => $locked,
 
-        "locked" => $locked,
+        'http_code' => $http_code,
 
-        "http_code" => $http_code,
+        'redirect' => $redirect,
 
-        "redirect" => $redirect,
+        'response' => $response,
 
-        "response" => $response,
-
-        "error" => ""
-
+        'error' => '',
     ];
 }
 
+if (isset($_GET['start'])) {
+    @ini_set('output_buffering', 'off');
 
+    @ini_set('zlib.output_compression', '0');
 
-
-if (isset($_GET["start"])) {
-
-    @ini_set(
-        "output_buffering",
-        "off"
-    );
-
-    @ini_set(
-        "zlib.output_compression",
-        "0"
-    );
-
-    @ini_set(
-        "implicit_flush",
-        "1"
-    );
+    @ini_set('implicit_flush', '1');
 
     while (ob_get_level() > 0) {
-
         @ob_end_flush();
-
     }
 
     ob_implicit_flush(true);
 
+    header('Content-Type: text/plain; charset=UTF-8');
 
-    header(
-        "Content-Type: text/plain; charset=UTF-8"
-    );
+    header('Cache-Control: no-cache, no-store, must-revalidate');
 
-    header(
-        "Cache-Control: no-cache, no-store, must-revalidate"
-    );
+    header('Pragma: no-cache');
 
-    header(
-        "Pragma: no-cache"
-    );
+    header('Expires: 0');
 
-    header(
-        "Expires: 0"
-    );
+    header('X-Accel-Buffering: no');
 
-    header(
-        "X-Accel-Buffering: no"
-    );
-
-
-    $start_time =
-        microtime(true);
-
+    $start_time = microtime(true);
 
     echo "╔════════════════════════════════════════════╗\n";
     echo "║        CYBER AUTHENTICATION LAB            ║\n";
     echo "║        LOCALHOST TESTING TERMINAL          ║\n";
     echo "╚════════════════════════════════════════════╝\n\n";
-
 
     echo "[+] Initializing laboratory test...\n";
 
@@ -308,9 +165,7 @@ if (isset($_GET["start"])) {
 
     echo "[+] Password    : $password_field\n";
 
-    echo "[+] Candidates  : "
-        . count($password_list)
-        . "\n";
+    echo '[+] Candidates  : ' . count($password_list) . "\n";
 
     echo "[+] Environment : LOCALHOST\n";
 
@@ -320,7 +175,6 @@ if (isset($_GET["start"])) {
 
     @ob_flush();
     @flush();
-
 
     /*
     |--------------------------------------------------------------------------
@@ -333,38 +187,30 @@ if (isset($_GET["start"])) {
 
     $reset_conn = null;
 
-    if (file_exists(__DIR__ . "/db.php")) {
-
+    if (file_exists(__DIR__ . '/db.php')) {
         $reset_conn = (function () {
-            include __DIR__ . "/db.php";
+            include __DIR__ . '/db.php';
             return $conn;
         })();
     }
 
     if ($reset_conn) {
-
-        $reset_stmt = $reset_conn->prepare(
-            "DELETE FROM login_attempts WHERE username = ?"
-        );
-        $reset_stmt->bind_param("s", $login_value);
+        $reset_stmt = $reset_conn->prepare('DELETE FROM login_attempts WHERE username = ?');
+        $reset_stmt->bind_param('s', $login_value);
         $reset_stmt->execute();
 
         echo "[+] Reset lockout state for '$login_value' before starting.\n\n";
 
         $reset_conn->close();
-
     } else {
-
-        echo "[!] Could not auto-reset lockout state (db.php not found) — "
-            . "results may be affected by a previous run.\n\n";
+        echo '[!] Could not auto-reset lockout state (db.php not found) — ' .
+            "results may be affected by a previous run.\n\n";
     }
 
     @ob_flush();
     @flush();
 
-
     $attempt = 0;
-
 
     /*
     |--------------------------------------------------------------------------
@@ -375,31 +221,21 @@ if (isset($_GET["start"])) {
     |--------------------------------------------------------------------------
     */
 
-    $cookie_file = tempnam(
-        sys_get_temp_dir(),
-        "cyber_lab_"
-    );
-
+    $cookie_file = tempnam(sys_get_temp_dir(), 'cyber_lab_');
 
     foreach ($password_list as $password) {
-
         $attempt++;
 
+        $result = test_login(
+            $target,
+            $login_type,
+            $login_value,
+            $password_field,
+            $password,
+            $cookie_file,
+        );
 
-        $result =
-            test_login(
-                $target,
-                $login_type,
-                $login_value,
-                $password_field,
-                $password,
-                $cookie_file
-            );
-
-
-        $http_code =
-            $result["http_code"];
-
+        $http_code = $result['http_code'];
 
         /*
         |--------------------------------------------------------------------------
@@ -407,17 +243,13 @@ if (isset($_GET["start"])) {
         |--------------------------------------------------------------------------
         */
 
-        if (!empty($result["error"])) {
-
-            echo "[ERROR] "
-                . $result["error"]
-                . "\n";
+        if (!empty($result['error'])) {
+            echo '[ERROR] ' . $result['error'] . "\n";
 
             @unlink($cookie_file);
 
             break;
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -425,14 +257,8 @@ if (isset($_GET["start"])) {
         |--------------------------------------------------------------------------
         */
 
-        if ($result["locked"]) {
-
-            echo sprintf(
-                "[%04d] %-18s [HTTP %d]  BLOCKED\n",
-                $attempt,
-                $password,
-                $http_code
-            );
+        if ($result['locked']) {
+            echo sprintf("[%04d] %-18s [HTTP %d]  BLOCKED\n", $attempt, $password, $http_code);
 
             echo ">>> ACCOUNT LOCKOUT DETECTED <<<\n";
 
@@ -440,52 +266,31 @@ if (isset($_GET["start"])) {
 
             echo ">>> AUTOMATED TEST STOPPED <<<\n\n";
 
-
             @ob_flush();
             @flush();
 
-
-            $elapsed =
-                microtime(true)
-                - $start_time;
-
+            $elapsed = microtime(true) - $start_time;
 
             echo "╔════════════════════════════════════════════╗\n";
             echo "║          SECURITY DEFENSE ACTIVE           ║\n";
             echo "╚════════════════════════════════════════════╝\n\n";
 
+            echo '[+] Login Identifier : ' . $login_value . "\n";
 
-            echo "[+] Login Identifier : "
-                . $login_value
-                . "\n";
-
-
-            echo "[+] Attempts         : "
-                . $attempt
-                . "\n";
-
+            echo '[+] Attempts         : ' . $attempt . "\n";
 
             echo "[+] Status           : ACCOUNT LOCKED\n";
 
-
-            echo "[+] Elapsed Time     : "
-                . number_format(
-                    $elapsed,
-                    2
-                )
-                . " seconds\n";
-
+            echo '[+] Elapsed Time     : ' . number_format($elapsed, 2) . " seconds\n";
 
             echo "\n";
 
             echo "[+] TEST COMPLETE - LOCKOUT WORKING.\n";
 
-
             @unlink($cookie_file);
 
-            exit;
+            exit();
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -493,71 +298,39 @@ if (isset($_GET["start"])) {
         |--------------------------------------------------------------------------
         */
 
-        if ($result["success"]) {
-
-            echo sprintf(
-                "[%04d] %-18s [HTTP %d]  ",
-                $attempt,
-                $password,
-                $http_code
-            );
+        if ($result['success']) {
+            echo sprintf('[%04d] %-18s [HTTP %d]  ', $attempt, $password, $http_code);
 
             echo ">>> SUCCESS <<<\n\n";
-
 
             @ob_flush();
             @flush();
 
-
-            $elapsed =
-                microtime(true)
-                - $start_time;
-
+            $elapsed = microtime(true) - $start_time;
 
             echo "╔════════════════════════════════════════════╗\n";
             echo "║              AUTHENTICATION                ║\n";
             echo "║                 MATCH                      ║\n";
             echo "╚════════════════════════════════════════════╝\n\n";
 
+            echo '[+] Login Identifier : ' . $login_value . "\n";
 
-            echo "[+] Login Identifier : "
-                . $login_value
-                . "\n";
+            echo '[+] Candidate        : ' . $password . "\n";
 
+            echo '[+] HTTP Status      : ' . $http_code . "\n";
 
-            echo "[+] Candidate        : "
-                . $password
-                . "\n";
+            echo '[+] Attempts         : ' . $attempt . "\n";
 
-
-            echo "[+] HTTP Status      : "
-                . $http_code
-                . "\n";
-
-
-            echo "[+] Attempts         : "
-                . $attempt
-                . "\n";
-
-
-            echo "[+] Elapsed Time     : "
-                . number_format(
-                    $elapsed,
-                    2
-                )
-                . " seconds\n";
-
+            echo '[+] Elapsed Time     : ' . number_format($elapsed, 2) . " seconds\n";
 
             echo "\n";
 
             echo "[+] TEST COMPLETE.\n";
 
-
             @unlink($cookie_file);
 
-            exit;
+            exit();
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -565,26 +338,15 @@ if (isset($_GET["start"])) {
         |--------------------------------------------------------------------------
         */
 
-        echo sprintf(
-            "[%04d] %-18s [HTTP %d]  FAILED\n",
-            $attempt,
-            $password,
-            $http_code
-        );
-
+        echo sprintf("[%04d] %-18s [HTTP %d]  FAILED\n", $attempt, $password, $http_code);
 
         @ob_flush();
         @flush();
 
-
         usleep(50000);
     }
 
-
-    $elapsed =
-        microtime(true)
-        - $start_time;
-
+    $elapsed = microtime(true) - $start_time;
 
     echo "\n";
 
@@ -596,28 +358,16 @@ if (isset($_GET["start"])) {
 
     echo "[!] as a successful authentication.\n\n";
 
+    echo '[+] Attempts : ' . $attempt . "\n";
 
-    echo "[+] Attempts : "
-        . $attempt
-        . "\n";
-
-
-    echo "[+] Time     : "
-        . number_format(
-            $elapsed,
-            2
-        )
-        . " seconds\n";
-
+    echo '[+] Time     : ' . number_format($elapsed, 2) . " seconds\n";
 
     echo "──────────────────────────────────────────────\n";
 
-
     @unlink($cookie_file);
 
-    exit;
+    exit();
 }
-
 ?>
 
 
@@ -625,1478 +375,938 @@ if (isset($_GET["start"])) {
 
 <html lang="en">
 
-<head>
+    <head>
 
-<meta charset="UTF-8">
+        <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>
-    CYBER LAB // Authentication Tester
-</title>
+        <title>
+            CYBER LAB // Authentication Tester
+        </title>
 
-<style>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
 
-* {
-    box-sizing: border-box;
-}
+        html,
+        body {
 
-html,
-body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
 
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    min-height: 100%;
+            font-family:
+                "Courier New",
+                Consolas,
+                monospace;
 
-    font-family:
-        "Courier New",
-        Consolas,
-        monospace;
+            background: #020604;
+            color: #00ff88;
+        }
 
-    background: #020604;
-    color: #00ff88;
-}
+        body {
 
-body {
+            overflow-x: hidden;
 
-    overflow-x: hidden;
+            background:
 
-    background:
+                radial-gradient(circle at 50% 0%,
+                    rgba(0, 255, 120, 0.08),
+                    transparent 40%),
 
-        radial-gradient(
-            circle at 50% 0%,
-            rgba(0,255,120,0.08),
-            transparent 40%
-        ),
+                radial-gradient(circle at 0% 100%,
+                    rgba(0, 180, 255, 0.06),
+                    transparent 35%),
 
-        radial-gradient(
-            circle at 0% 100%,
-            rgba(0,180,255,0.06),
-            transparent 35%
-        ),
+                #020604;
+        }
 
-        #020604;
-}
+        body::before {
 
-body::before {
+            content: "";
 
-    content: "";
+            position: fixed;
+            inset: 0;
 
-    position: fixed;
-    inset: 0;
+            pointer-events: none;
 
-    pointer-events: none;
+            opacity: 0.08;
 
-    opacity: 0.08;
+            background-image:
 
-    background-image:
+                linear-gradient(rgba(0, 255, 120, 0.15) 1px,
+                    transparent 1px),
 
-        linear-gradient(
-            rgba(0,255,120,0.15) 1px,
-            transparent 1px
-        ),
+                linear-gradient(90deg,
+                    rgba(0, 255, 120, 0.15) 1px,
+                    transparent 1px);
 
-        linear-gradient(
-            90deg,
-            rgba(0,255,120,0.15) 1px,
-            transparent 1px
-        );
+            background-size: 40px 40px;
 
-    background-size: 40px 40px;
+            animation:
+                gridMove 12s linear infinite;
+        }
 
-    animation:
-        gridMove 12s linear infinite;
-}
+        @keyframes gridMove {
 
-@keyframes gridMove {
+            from {
+                background-position:
+                    0 0,
+                    0 0;
+            }
 
-    from {
-        background-position:
-            0 0,
-            0 0;
-    }
+            to {
+                background-position:
+                    0 40px,
+                    40px 0;
+            }
+        }
 
-    to {
-        background-position:
-            0 40px,
-            40px 0;
-    }
-}
+        .wrapper {
 
-.wrapper {
+            position: relative;
+            z-index: 1;
 
-    position: relative;
-    z-index: 1;
+            width: min(1400px,
+                    94%);
 
-    width: min(
-        1400px,
-        94%
-    );
+            margin:
+                30px auto 50px;
+        }
 
-    margin:
-        30px auto 50px;
-}
+        .header {
 
-.header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+            padding:
+                18px 22px;
 
-    padding:
-        18px 22px;
+            border:
+                1px solid rgba(0, 255, 120, 0.35);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.35);
+            background:
+                rgba(0, 10, 6, 0.88);
 
-    background:
-        rgba(0,10,6,0.88);
+            box-shadow:
+                0 0 30px rgba(0, 255, 120, 0.08);
 
-    box-shadow:
-        0 0 30px
-        rgba(0,255,120,0.08);
+            border-radius:
+                8px 8px 0 0;
+        }
 
-    border-radius:
-        8px 8px 0 0;
-}
+        .logo {
 
-.logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
 
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
+        .logo-icon {
 
-.logo-icon {
+            width: 42px;
+            height: 42px;
 
-    width: 42px;
-    height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+            border:
+                1px solid #00ff88;
 
-    border:
-        1px solid
-        #00ff88;
+            color:
+                #00ff88;
 
-    color:
-        #00ff88;
+            font-size: 20px;
 
-    font-size: 20px;
+            box-shadow:
+                0 0 15px rgba(0, 255, 120, 0.4);
+        }
 
-    box-shadow:
-        0 0 15px
-        rgba(0,255,120,0.4);
-}
+        .logo-title {
 
-.logo-title {
+            font-size: 18px;
+            font-weight: bold;
 
-    font-size: 18px;
-    font-weight: bold;
+            letter-spacing: 2px;
 
-    letter-spacing: 2px;
+            color: #00ff88;
+        }
 
-    color: #00ff88;
-}
+        .logo-sub {
 
-.logo-sub {
+            color: #4f9f78;
 
-    color: #4f9f78;
+            font-size: 11px;
 
-    font-size: 11px;
+            margin-top: 3px;
 
-    margin-top: 3px;
+            letter-spacing: 1px;
+        }
 
-    letter-spacing: 1px;
-}
+        .local-status {
 
-.local-status {
+            display: flex;
+            align-items: center;
 
-    display: flex;
-    align-items: center;
+            gap: 9px;
 
-    gap: 9px;
+            padding:
+                8px 13px;
 
-    padding:
-        8px 13px;
+            border:
+                1px solid rgba(0, 255, 120, 0.35);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.35);
+            color:
+                #00ff88;
 
-    color:
-        #00ff88;
+            font-size: 11px;
 
-    font-size: 11px;
+            letter-spacing: 1px;
 
-    letter-spacing: 1px;
+            background:
+                rgba(0, 255, 120, 0.04);
+        }
 
-    background:
-        rgba(0,255,120,0.04);
-}
+        .status-dot {
 
-.status-dot {
+            width: 9px;
+            height: 9px;
 
-    width: 9px;
-    height: 9px;
+            border-radius: 50%;
 
-    border-radius: 50%;
+            background: #00ff88;
 
-    background: #00ff88;
+            box-shadow:
+                0 0 12px #00ff88;
 
-    box-shadow:
-        0 0 12px
-        #00ff88;
+            animation:
+                pulse 1.4s infinite;
+        }
 
-    animation:
-        pulse 1.4s infinite;
-}
+        @keyframes pulse {
 
-@keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
 
-    0%,100% {
-        opacity: 1;
-    }
+            50% {
+                opacity: .35;
+            }
+        }
 
-    50% {
-        opacity: .35;
-    }
-}
+        .content {
 
-.content {
+            display: grid;
 
-    display: grid;
+            grid-template-columns:
+                380px 1fr;
 
-    grid-template-columns:
-        380px 1fr;
+            gap: 18px;
 
-    gap: 18px;
+            margin-top: 18px;
+        }
 
-    margin-top: 18px;
-}
+        @media(max-width:900px) {
 
-@media(max-width:900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .content {
-        grid-template-columns: 1fr;
-    }
-}
+        .panel {
 
-.panel {
+            border:
+                1px solid rgba(0, 255, 120, 0.25);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.25);
+            background:
+                rgba(1, 12, 8, 0.90);
 
-    background:
-        rgba(1,12,8,0.90);
+            box-shadow:
+                0 0 25px rgba(0, 255, 120, 0.04);
 
-    box-shadow:
-        0 0 25px
-        rgba(0,255,120,0.04);
+            border-radius: 6px;
 
-    border-radius: 6px;
+            overflow: hidden;
+        }
 
-    overflow: hidden;
-}
+        .panel-header {
 
-.panel-header {
+            display: flex;
+            justify-content: space-between;
 
-    display: flex;
-    justify-content: space-between;
+            padding:
+                12px 15px;
 
-    padding:
-        12px 15px;
+            border-bottom:
+                1px solid rgba(0, 255, 120, 0.18);
 
-    border-bottom:
-        1px solid
-        rgba(0,255,120,0.18);
+            background:
+                rgba(0, 255, 120, 0.035);
 
-    background:
-        rgba(0,255,120,0.035);
+            font-size: 11px;
 
-    font-size: 11px;
+            letter-spacing: 1.5px;
+        }
 
-    letter-spacing: 1.5px;
-}
+        .panel-header span:first-child {
+            color: #00ff88;
+        }
 
-.panel-header span:first-child {
-    color: #00ff88;
-}
+        .panel-header span:last-child {
+            color: #276b4c;
+        }
 
-.panel-header span:last-child {
-    color: #276b4c;
-}
+        .config {
+            padding: 18px;
+        }
 
-.config {
-    padding: 18px;
-}
+        .field {
+            margin-bottom: 17px;
+        }
 
-.field {
-    margin-bottom: 17px;
-}
+        .field label {
 
-.field label {
+            display: block;
 
-    display: block;
+            margin-bottom: 7px;
 
-    margin-bottom: 7px;
+            color: #52b88a;
 
-    color: #52b88a;
+            font-size: 10px;
 
-    font-size: 10px;
+            letter-spacing: 1px;
+        }
 
-    letter-spacing: 1px;
-}
+        input,
+        select {
 
-input,
-select {
+            width: 100%;
 
-    width: 100%;
+            padding:
+                12px 13px;
 
-    padding:
-        12px 13px;
+            border:
+                1px solid rgba(0, 255, 120, 0.25);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.25);
+            outline: none;
 
-    outline: none;
+            background: #020805;
 
-    background: #020805;
+            color: #00ff88;
 
-    color: #00ff88;
+            font-family: inherit;
 
-    font-family: inherit;
+            font-size: 12px;
 
-    font-size: 12px;
+            border-radius: 3px;
+        }
 
-    border-radius: 3px;
-}
+        input:focus,
+        select:focus {
 
-input:focus,
-select:focus {
+            border-color: #00ff88;
 
-    border-color: #00ff88;
+            box-shadow:
+                0 0 12px rgba(0, 255, 120, 0.18);
+        }
 
-    box-shadow:
-        0 0 12px
-        rgba(0,255,120,0.18);
-}
+        select option {
 
-select option {
+            background: #020805;
 
-    background: #020805;
+            color: #00ff88;
+        }
 
-    color: #00ff88;
-}
+        .buttons {
 
-.buttons {
+            display: grid;
 
-    display: grid;
+            grid-template-columns:
+                1fr 1fr;
 
-    grid-template-columns:
-        1fr 1fr;
+            gap: 10px;
 
-    gap: 10px;
+            margin-top: 20px;
+        }
 
-    margin-top: 20px;
-}
+        button {
 
-button {
+            padding: 13px;
 
-    padding: 13px;
+            border:
+                1px solid #00ff88;
 
-    border:
-        1px solid
-        #00ff88;
+            background:
+                rgba(0, 255, 120, 0.07);
 
-    background:
-        rgba(0,255,120,0.07);
+            color: #00ff88;
 
-    color: #00ff88;
+            font-family: inherit;
 
-    font-family: inherit;
+            font-weight: bold;
 
-    font-weight: bold;
+            font-size: 11px;
 
-    font-size: 11px;
+            letter-spacing: 1px;
 
-    letter-spacing: 1px;
+            cursor: pointer;
 
-    cursor: pointer;
+            border-radius: 3px;
+        }
 
-    border-radius: 3px;
-}
+        button:hover {
 
-button:hover {
+            background:
+                rgba(0, 255, 120, 0.18);
 
-    background:
-        rgba(0,255,120,0.18);
+            box-shadow:
+                0 0 18px rgba(0, 255, 120, 0.25);
+        }
 
-    box-shadow:
-        0 0 18px
-        rgba(0,255,120,0.25);
-}
+        #stopBtn {
 
-#stopBtn {
+            border-color: #ff3355;
+            color: #ff3355;
 
-    border-color: #ff3355;
-    color: #ff3355;
+            background:
+                rgba(255, 30, 70, 0.05);
+        }
 
-    background:
-        rgba(255,30,70,0.05);
-}
+        #stopBtn:hover {
 
-#stopBtn:hover {
+            background:
+                rgba(255, 30, 70, 0.12);
 
-    background:
-        rgba(255,30,70,0.12);
+            box-shadow:
+                0 0 18px rgba(255, 30, 70, 0.2);
+        }
 
-    box-shadow:
-        0 0 18px
-        rgba(255,30,70,0.2);
-}
+        .stats {
 
-.stats {
+            display: grid;
 
-    display: grid;
+            grid-template-columns:
+                repeat(4, 1fr);
 
-    grid-template-columns:
-        repeat(4,1fr);
+            gap: 10px;
 
-    gap: 10px;
+            padding: 15px;
+        }
 
-    padding: 15px;
-}
+        .stat {
 
-.stat {
+            border:
+                1px solid rgba(0, 255, 120, 0.16);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.16);
+            background:
+                rgba(0, 0, 0, 0.25);
 
-    background:
-        rgba(0,0,0,0.25);
+            padding: 13px;
 
-    padding: 13px;
+            text-align: center;
+        }
 
-    text-align: center;
-}
+        .stat-label {
 
-.stat-label {
+            color: #347858;
 
-    color: #347858;
+            font-size: 9px;
 
-    font-size: 9px;
+            letter-spacing: 1px;
 
-    letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
 
-    margin-bottom: 7px;
-}
+        .stat-value {
 
-.stat-value {
+            color: #00ff88;
 
-    color: #00ff88;
+            font-size: 18px;
 
-    font-size: 18px;
+            font-weight: bold;
+        }
 
-    font-weight: bold;
-}
+        .terminal-panel {
+            min-height: 650px;
+        }
 
-.terminal-panel {
-    min-height: 650px;
-}
+        .terminal {
 
-.terminal {
+            margin: 0;
 
-    margin: 0;
+            height: 560px;
 
-    height: 560px;
+            overflow-y: auto;
 
-    overflow-y: auto;
+            padding: 18px;
 
-    padding: 18px;
+            background: #010302;
 
-    background: #010302;
+            color: #00ff88;
 
-    color: #00ff88;
+            font-size: 12px;
 
-    font-size: 12px;
+            line-height: 1.7;
 
-    line-height: 1.7;
+            white-space: pre-wrap;
 
-    white-space: pre-wrap;
+            text-shadow:
+                0 0 5px rgba(0, 255, 120, 0.45);
+        }
 
-    text-shadow:
-        0 0 5px
-        rgba(0,255,120,0.45);
-}
+        .terminal-bar {
 
-.terminal-bar {
+            display: flex;
+            align-items: center;
 
-    display: flex;
-    align-items: center;
+            gap: 7px;
 
-    gap: 7px;
+            padding:
+                9px 12px;
 
-    padding:
-        9px 12px;
+            border-bottom:
+                1px solid rgba(0, 255, 120, 0.15);
 
-    border-bottom:
-        1px solid
-        rgba(0,255,120,0.15);
+            background: #050807;
+        }
 
-    background: #050807;
-}
+        .terminal-circle {
 
-.terminal-circle {
+            width: 9px;
+            height: 9px;
 
-    width: 9px;
-    height: 9px;
+            border-radius: 50%;
 
-    border-radius: 50%;
+            background: #244c37;
+        }
 
-    background: #244c37;
-}
+        .terminal-title {
 
-.terminal-title {
+            margin-left: 8px;
 
-    margin-left: 8px;
+            color: #3d805f;
 
-    color: #3d805f;
+            font-size: 10px;
+        }
 
-    font-size: 10px;
-}
+        .terminal .failed-line {
 
-.terminal .failed-line {
+            color: #ff4d6d !important;
 
-    color: #ff4d6d !important;
+            font-weight: 700;
+        }
 
-    font-weight: 700;
-}
+        .terminal .success-line {
 
-.terminal .success-line {
+            color: #00ffff !important;
 
-    color: #00ffff !important;
+            font-weight: 800;
+        }
 
-    font-weight: 800;
-}
+        .terminal .attempt-line {
+            font-weight: 700;
+        }
 
-.terminal .attempt-line {
-    font-weight: 700;
-}
+        .footer {
 
-.footer {
+            margin-top: 18px;
 
-    margin-top: 18px;
+            padding: 14px;
 
-    padding: 14px;
+            text-align: center;
 
-    text-align: center;
+            border:
+                1px solid rgba(0, 255, 120, 0.15);
 
-    border:
-        1px solid
-        rgba(0,255,120,0.15);
+            color: #286044;
 
-    color: #286044;
+            font-size: 10px;
 
-    font-size: 10px;
+            letter-spacing: 1px;
 
-    letter-spacing: 1px;
+            background:
+                rgba(0, 10, 6, 0.7);
+        }
 
-    background:
-        rgba(0,10,6,0.7);
-}
+        .warning {
 
-.warning {
+            margin:
+                0 0 18px;
 
-    margin:
-        0 0 18px;
+            padding: 11px;
 
-    padding: 11px;
+            border:
+                1px solid rgba(255, 190, 0, 0.3);
 
-    border:
-        1px solid
-        rgba(255,190,0,0.3);
+            background:
+                rgba(255, 180, 0, 0.04);
 
-    background:
-        rgba(255,180,0,0.04);
+            color: #c9a84b;
 
-    color: #c9a84b;
+            font-size: 10px;
 
-    font-size: 10px;
+            line-height: 1.6;
+        }
 
-    line-height: 1.6;
-}
+        .falling-code {
 
-.falling-code {
+            position: fixed;
 
-    position: fixed;
+            top: 0;
+            bottom: 0;
 
-    top: 0;
-    bottom: 0;
+            width: 170px;
 
-    width: 170px;
+            overflow: hidden;
 
-    overflow: hidden;
+            pointer-events: none;
 
-    pointer-events: none;
+            z-index: 0;
 
-    z-index: 0;
+            opacity: 0.42;
 
-    opacity: 0.42;
+            font-family:
+                "Courier New",
+                Consolas,
+                monospace;
 
-    font-family:
-        "Courier New",
-        Consolas,
-        monospace;
+            color: #00ff88;
 
-    color: #00ff88;
+            text-shadow:
+                0 0 7px rgba(0, 255, 120, 0.55);
+        }
 
-    text-shadow:
-        0 0 7px
-        rgba(0,255,120,0.55);
-}
+        .falling-code.left {
+            left: 0;
+        }
 
-.falling-code.left {
-    left: 0;
-}
+        .falling-code.right {
+            right: 0;
+        }
 
-.falling-code.right {
-    right: 0;
-}
+        .falling-column {
 
-.falling-column {
+            position: absolute;
 
-    position: absolute;
+            top: -220px;
 
-    top: -220px;
+            white-space: pre;
 
-    white-space: pre;
+            font-size: 12px;
 
-    font-size: 12px;
+            line-height: 1.55;
 
-    line-height: 1.55;
+            animation:
+                codeFall linear infinite;
+        }
 
-    animation:
-        codeFall linear infinite;
-}
+        @keyframes codeFall {
 
-@keyframes codeFall {
+            from {
+                transform:
+                    translateY(-260px);
+            }
 
-    from {
-        transform:
-            translateY(-260px);
-    }
+            to {
+                transform:
+                    translateY(calc(100vh + 300px));
+            }
+        }
 
-    to {
-        transform:
-            translateY(
-                calc(100vh + 300px)
-            );
-    }
-}
+        @media(max-width:1100px) {
 
-@media(max-width:1100px) {
+            .falling-code {
 
-    .falling-code {
+                width: 95px;
 
-        width: 95px;
+                opacity: 0.25;
+            }
+        }
 
-        opacity: 0.25;
-    }
-}
+        @media(max-width:900px) {
 
-@media(max-width:900px) {
+            .falling-code {
+                display: none;
+            }
+        }
 
-    .falling-code {
-        display: none;
-    }
-}
+        </style>
 
-</style>
+    </head>
 
-</head>
+    <body>
 
-<body>
+        <div class="falling-code left" id="fallingLeft"></div>
 
-<div
-    class="falling-code left"
-    id="fallingLeft"
-></div>
+        <div class="falling-code right" id="fallingRight"></div>
 
-<div
-    class="falling-code right"
-    id="fallingRight"
-></div>
 
+        <div class="wrapper">
 
-<div class="wrapper">
+            <div class="header">
 
-    <div class="header">
+                <div class="logo">
 
-        <div class="logo">
+                    <div class="logo-icon">
+                        &gt;_
+                    </div>
 
-            <div class="logo-icon">
-                &gt;_
+                    <div>
+
+                        <div class="logo-title">
+                            CYBER LAB
+                        </div>
+
+                        <div class="logo-sub">
+                            AUTHENTICATION SECURITY TESTER
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="local-status">
+
+                    <span class="status-dot"></span>
+
+                    LOCALHOST ONLY
+
+                </div>
+
             </div>
 
-            <div>
 
-                <div class="logo-title">
-                    CYBER LAB
+            <div class="content">
+
+                <div>
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <span>
+                                TARGET CONFIGURATION
+                            </span>
+
+                            <span>
+                                [CONFIG]
+                            </span>
+
+                        </div>
+
+
+                        <div class="config">
+
+                            <div class="field">
+
+                                <label>
+                                    TARGET LOGIN URL
+                                </label>
+
+                                <input type="text" id="target"
+                                    value="<?php echo htmlspecialchars($target); ?>">
+
+                            </div>
+
+
+                            <div class="field">
+
+                                <label>
+                                    LOGIN IDENTIFIER
+                                </label>
+
+                                <select id="loginType">
+
+                                    <option value="username" selected>
+                                        USERNAME
+                                    </option>
+
+                                    <option value="email">
+                                        EMAIL
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="field">
+
+                                <label>
+                                    LOGIN VALUE
+                                </label>
+
+                                <input type="text" id="loginValue"
+                                    value="<?php echo htmlspecialchars($login_value); ?>">
+
+                            </div>
+
+
+                            <div class="warning">
+
+                                AUTHORIZED LAB USE ONLY
+
+                                <br>
+
+                                This tester is restricted to
+                                localhost environments.
+
+                            </div>
+
+
+                            <div class="buttons">
+
+                                <button id="startBtn">
+                                    ▶ START TEST
+                                </button>
+
+                                <button id="stopBtn">
+                                    ■ STOP
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="panel panel-spaced">
+
+                        <div class="panel-header">
+
+                            <span>
+                                SYSTEM STATUS
+                            </span>
+
+                            <span>
+                                [ONLINE]
+                            </span>
+
+                        </div>
+
+
+                        <div class="stats">
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    CANDIDATES
+                                </div>
+
+                                <div class="stat-value">
+                                    <?php echo count($password_list); ?>
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    ATTEMPTS
+                                </div>
+
+                                <div class="stat-value" id="attemptStat">
+                                    0
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    FAILED
+                                </div>
+
+                                <div class="stat-value" id="failedStat">
+                                    0
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    STATUS
+                                </div>
+
+                                <div class="stat-value" id="statusStat">
+                                    IDLE
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div class="logo-sub">
-                    AUTHENTICATION SECURITY TESTER
+
+                <div class="panel terminal-panel">
+
+                    <div class="terminal-bar">
+
+                        <span class="terminal-circle"></span>
+
+                        <span class="terminal-circle"></span>
+
+                        <span class="terminal-circle"></span>
+
+                        <span class="terminal-title">
+                            CYBER-LAB TERMINAL // localhost
+                        </span>
+
+                    </div>
+
+
+                    <div class="terminal" id="output">
+
+                        ╔════════════════════════════════════════════╗
+                        ║ CYBER AUTHENTICATION LAB ║
+                        ║ LOCALHOST TESTING TERMINAL ║
+                        ╚════════════════════════════════════════════╝
+
+                        root@localhost:~$ system-check
+
+                        [+] Environment : LOCALHOST
+                        [+] Security : LOCAL TARGET ONLY
+                        [+] Status : READY
+
+                        root@localhost:~$ waiting for test...
+
+                    </div>
+
                 </div>
+
+            </div>
+
+
+            <div class="footer">
+
+                CYBERSECURITY LABORATORY
+                //
+                AUTHENTICATION SECURITY ANALYSIS
+                //
+                LOCAL ENVIRONMENT
 
             </div>
 
         </div>
 
 
-        <div class="local-status">
+        <script src="js/lab-test.js" defer></script>
 
-            <span class="status-dot"></span>
-
-            LOCALHOST ONLY
-
-        </div>
-
-    </div>
-
-
-    <div class="content">
-
-        <div>
-
-            <div class="panel">
-
-                <div class="panel-header">
-
-                    <span>
-                        TARGET CONFIGURATION
-                    </span>
-
-                    <span>
-                        [CONFIG]
-                    </span>
-
-                </div>
-
-
-                <div class="config">
-
-                    <div class="field">
-
-                        <label>
-                            TARGET LOGIN URL
-                        </label>
-
-                        <input
-                            type="text"
-                            id="target"
-                            value="<?php
-                                echo htmlspecialchars(
-                                    $target
-                                );
-                            ?>"
-                        >
-
-                    </div>
-
-
-                    <div class="field">
-
-                        <label>
-                            LOGIN IDENTIFIER
-                        </label>
-
-                        <select id="loginType">
-
-                            <option
-                                value="username"
-                                selected
-                            >
-                                USERNAME
-                            </option>
-
-                            <option
-                                value="email"
-                            >
-                                EMAIL
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="field">
-
-                        <label>
-                            LOGIN VALUE
-                        </label>
-
-                        <input
-                            type="text"
-                            id="loginValue"
-                            value="<?php
-                                echo htmlspecialchars(
-                                    $login_value
-                                );
-                            ?>"
-                        >
-
-                    </div>
-
-
-                    <div class="warning">
-
-                         AUTHORIZED LAB USE ONLY
-
-                        <br>
-
-                        This tester is restricted to
-                        localhost environments.
-
-                    </div>
-
-
-                    <div class="buttons">
-
-                        <button id="startBtn">
-                            ▶ START TEST
-                        </button>
-
-                        <button id="stopBtn">
-                            ■ STOP
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="panel"
-                style="margin-top:18px;"
-            >
-
-                <div class="panel-header">
-
-                    <span>
-                        SYSTEM STATUS
-                    </span>
-
-                    <span>
-                        [ONLINE]
-                    </span>
-
-                </div>
-
-
-                <div class="stats">
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            CANDIDATES
-                        </div>
-
-                        <div class="stat-value">
-                            <?php
-                            echo count(
-                                $password_list
-                            );
-                            ?>
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            ATTEMPTS
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="attemptStat"
-                        >
-                            0
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            FAILED
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="failedStat"
-                        >
-                            0
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat">
-
-                        <div class="stat-label">
-                            STATUS
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="statusStat"
-                        >
-                            IDLE
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="panel terminal-panel">
-
-            <div class="terminal-bar">
-
-                <span class="terminal-circle"></span>
-
-                <span class="terminal-circle"></span>
-
-                <span class="terminal-circle"></span>
-
-                <span class="terminal-title">
-                    CYBER-LAB TERMINAL // localhost
-                </span>
-
-            </div>
-
-
-            <div
-                class="terminal"
-                id="output"
-            >
-
-╔════════════════════════════════════════════╗
-║        CYBER AUTHENTICATION LAB            ║
-║        LOCALHOST TESTING TERMINAL          ║
-╚════════════════════════════════════════════╝
-
-root@localhost:~$ system-check
-
-[+] Environment : LOCALHOST
-[+] Security    : LOCAL TARGET ONLY
-[+] Status      : READY
-
-root@localhost:~$ waiting for test...
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="footer">
-
-        CYBERSECURITY LABORATORY
-        //
-        AUTHENTICATION SECURITY ANALYSIS
-        //
-        LOCAL ENVIRONMENT
-
-    </div>
-
-</div>
-
-
-<script>
-
-let running = false;
-let controller = null;
-
-
-document
-.getElementById("startBtn")
-.addEventListener(
-    "click",
-    async function () {
-
-        if (running) {
-            return;
-        }
-
-        running = true;
-
-        const output =
-            document.getElementById("output");
-
-        const status =
-            document.getElementById("statusStat");
-
-        const attempts =
-            document.getElementById("attemptStat");
-
-        const failedStat =
-            document.getElementById("failedStat");
-
-
-        output.textContent =
-            "root@localhost:~$ ./auth-test\n\n";
-
-        attempts.textContent = "0";
-
-        failedStat.textContent = "0";
-
-        status.textContent = "RUNNING";
-
-        status.style.color = "#00bfff";
-
-
-        output.textContent +=
-            "[*] Initializing test...\n";
-
-        output.textContent +=
-            "[*] Target      : " +
-            document.getElementById("target").value +
-            "\n";
-
-        output.textContent +=
-            "[*] Identifier  : " +
-            document.getElementById("loginType").value +
-            "\n";
-
-        output.textContent +=
-            "[*] Login Value : " +
-            document.getElementById("loginValue").value +
-            "\n";
-
-        output.textContent +=
-            "[*] Environment : LOCALHOST\n";
-
-        output.textContent +=
-            "---------------------------------------------\n";
-
-
-        try {
-
-            controller =
-                new AbortController();
-
-
-            const response =
-                await fetch(
-                    "lab_test.php?start=1&_=" +
-                    Date.now(),
-                    {
-                        method: "GET",
-                        cache: "no-store",
-                        signal: controller.signal
-                    }
-                );
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "HTTP " +
-                    response.status
-                );
-            }
-
-
-            const reader =
-                response.body.getReader();
-
-            const decoder =
-                new TextDecoder("utf-8");
-
-
-            while (true) {
-
-                const result =
-                    await reader.read();
-
-
-                if (result.done) {
-                    break;
-                }
-
-
-                const chunk =
-                    decoder.decode(
-                        result.value,
-                        {
-                            stream: true
-                        }
-                    );
-
-
-                if (!chunk) {
-                    continue;
-                }
-
-
-                const lines =
-                    chunk.split("\n");
-
-
-                lines.forEach(
-                    function (lineText, index) {
-
-                        if (
-                            index ===
-                            lines.length - 1 &&
-                            lineText === ""
-                        ) {
-                            return;
-                        }
-
-
-                        const line =
-                            document.createElement(
-                                "div"
-                            );
-
-
-                        line.textContent =
-                            lineText;
-
-
-                        if (
-                            lineText.indexOf(
-                                ">>> SUCCESS <<<"
-                            ) !== -1
-                        ) {
-
-                            line.className =
-                                "success-line";
-
-                        } else if (
-                            lineText.indexOf(
-                                "FAILED"
-                            ) !== -1
-                        ) {
-
-                            line.className =
-                                "failed-line";
-
-                        } else if (
-                            lineText.match(
-                                /^\[\d+\]/
-                            )
-                        ) {
-
-                            line.className =
-                                "attempt-line";
-                        }
-
-
-                        output.appendChild(line);
-
-                    }
-                );
-
-
-                const attemptMatches =
-                    chunk.match(
-                        /\[(\d+)\]/g
-                    );
-
-
-                if (
-                    attemptMatches &&
-                    attemptMatches.length
-                ) {
-
-                    const last =
-                        attemptMatches[
-                            attemptMatches.length - 1
-                        ];
-
-
-                    const number =
-                        last.replace(
-                            /\D/g,
-                            ""
-                        );
-
-
-                    attempts.textContent =
-                        parseInt(
-                            number,
-                            10
-                        );
-                }
-
-
-                const failedMatches =
-                    chunk.match(
-                        /FAILED/g
-                    );
-
-
-                if (failedMatches) {
-
-                    failedStat.textContent =
-                        parseInt(
-                            failedStat.textContent,
-                            10
-                        ) +
-                        failedMatches.length;
-                }
-
-
-                if (
-                    chunk.indexOf(
-                        "SUCCESS"
-                    ) !== -1
-                ) {
-
-                    status.textContent =
-                        "SUCCESS";
-
-                    status.style.color =
-                        "#00ff88";
-                }
-
-
-                output.scrollTop =
-                    output.scrollHeight;
-            }
-
-        }
-
-        catch (error) {
-
-            if (
-                error.name ===
-                "AbortError"
-            ) {
-
-                output.textContent +=
-                    "\n[!] PROCESS STOPPED BY USER.\n";
-
-                status.textContent =
-                    "STOPPED";
-
-                status.style.color =
-                    "#ff3355";
-
-            } else {
-
-                output.textContent +=
-                    "\n[ERROR] " +
-                    error.message +
-                    "\n";
-
-                status.textContent =
-                    "ERROR";
-
-                status.style.color =
-                    "#ff3355";
-            }
-        }
-
-
-        running = false;
-
-        controller = null;
-
-
-        if (
-            status.textContent ===
-            "RUNNING"
-        ) {
-
-            status.textContent =
-                "DONE";
-
-            status.style.color =
-                "#00ff88";
-        }
-
-    }
-);
-
-
-document
-.getElementById("stopBtn")
-.addEventListener(
-    "click",
-    function () {
-
-        if (
-            controller &&
-            running
-        ) {
-
-            controller.abort();
-        }
-
-        running = false;
-
-    }
-);
-
-
-(function () {
-
-    const characters =
-        "01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz<>[]{}#$%&@";
-
-
-    function randomCode(length) {
-
-        let result = "";
-
-        for (
-            let i = 0;
-            i < length;
-            i++
-        ) {
-
-            result +=
-                characters.charAt(
-                    Math.floor(
-                        Math.random() *
-                        characters.length
-                    )
-                );
-
-            if (i % 3 === 2) {
-                result += "\n";
-            }
-        }
-
-        return result;
-    }
-
-
-    function createColumns(
-        containerId,
-        count
-    ) {
-
-        const container =
-            document.getElementById(
-                containerId
-            );
-
-
-        if (!container) {
-            return;
-        }
-
-
-        for (
-            let i = 0;
-            i < count;
-            i++
-        ) {
-
-            const column =
-                document.createElement(
-                    "div"
-                );
-
-
-            column.className =
-                "falling-column";
-
-
-            column.textContent =
-                randomCode(
-                    95 +
-                    Math.floor(
-                        Math.random() * 55
-                    )
-                );
-
-
-            column.style.left =
-                (
-                    5 +
-                    Math.random() * 88
-                ) +
-                "%";
-
-
-            column.style.animationDuration =
-                (
-                    7 +
-                    Math.random() * 10
-                ) +
-                "s";
-
-
-            column.style.animationDelay =
-                (
-                    -Math.random() * 12
-                ) +
-                "s";
-
-
-            column.style.opacity =
-                (
-                    0.25 +
-                    Math.random() * 0.65
-                ).toFixed(2);
-
-
-            column.style.fontSize =
-                (
-                    9 +
-                    Math.random() * 5
-                ) +
-                "px";
-
-
-            container.appendChild(
-                column
-            );
-        }
-    }
-
-
-    createColumns(
-        "fallingLeft",
-        7
-    );
-
-    createColumns(
-        "fallingRight",
-        7
-    );
-
-})();
-
-</script>
-
-</body>
+    </body>
 
 </html>
